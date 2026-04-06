@@ -1,38 +1,28 @@
-CUR_VER := $(shell poetry run $(PWD)/current_version.py)
+# 支持 multi-arch
+VERSION ?= dev  # 本地开发版
 SHELL := bash
 
 .PHONY: build
 build:
-	docker build -t assaflavie/runlike --build-arg VERSION=$(CUR_VER) .
-	docker tag assaflavie/runlike assaflavie/runlike:$(CUR_VER)
+	docker build -t yourname/runlike:$(VERSION) .
 
 .PHONY: rebuild
 rebuild:
-	docker build -t assaflavie/runlike --build-arg VERSION=$(CUR_VER) --no-cache=true .
-	docker tag assaflavie/runlike assaflavie/runlike:$(CUR_VER)
+	docker build --no-cache -t yourname/runlike:$(VERSION) .
 
 .PHONY: push
 push: rebuild
-	docker push assaflavie/runlike
-	docker push assaflavie/runlike:$(CUR_VER)
+	docker push yourname/runlike:$(VERSION)
 
+# 支持多架构构建
+.PHONY: buildx
+buildx:
+	docker buildx build \
+	--platform linux/amd64,linux/arm64 \
+	-t yourname/runlike:$(VERSION) \
+	--push .
+
+# 测试安装成功
 .PHONY: test
 test:
-	poetry run pytest -v
-
-.PHONY: pypi
-pypi:
-	poetry build
-	@if ! poetry publish -u __token__ -p $(POETRY_PYPI_TOKEN_PYPI) 2>&1 | tee /dev/stderr | grep -q "HTTP Error 400: File already exists"; then \
-		if [ $$? -ne 0 ]; then \
-			echo "Error occurred during publish that was not 'File already exists'. Exiting."; \
-			exit 1; \
-		fi; \
-	else \
-		echo "Version $(CUR_VER) already exists on PyPI. Continuing..."; \
-	fi
-
-.PHONY: release
-release: push pypi
-
-
+	docker run --rm yourname/runlike --help

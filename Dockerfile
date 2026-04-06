@@ -1,11 +1,15 @@
-FROM docker:latest
+# 使用轻量 Python 镜像
+FROM python:3.12-alpine
 
-ARG VERSION
+# 设置工作目录
+WORKDIR /app
 
-RUN apk add --no-cache python3 py3-pip
+# 复制本地源码到镜像
+# 假设你 fork 的 runlike 仓库和 Dockerfile 在同一级目录
+COPY . /app
 
-RUN python3 -m venv /app/venv
-ENV PATH="/app/venv/bin:$PATH"
-RUN pip3 install runlike==$VERSION
+# 安装依赖并安装本地 runlike
+RUN pip install --no-cache-dir .
 
+# 设置入口
 ENTRYPOINT ["runlike"]
