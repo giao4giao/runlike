@@ -8,6 +8,9 @@ WORKDIR /app
 # 假设你 fork 的 runlike 仓库和 Dockerfile 在同一级目录
 COPY . /app
 
+# 安装 docker CLI
+RUN apk add --no-cache docker-cli
+
 # 安装依赖并安装本地 runlike
 RUN pip install --no-cache-dir .
 
